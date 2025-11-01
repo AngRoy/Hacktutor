@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, BigInteger, Text, UUID, BLOB
+from sqlalchemy import Column, Integer, String, DateTime, BigInteger, Text, UUID
 from .db_setup import Base, engine
 from datetime import datetime
 from uuid import uuid4
@@ -26,5 +26,9 @@ class Message(Base):
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.now())
     mermaid_code = Column(Text, nullable=True)
-    img = Column(BLOB, nullable=True)  # Base64 encoded image data 
+    img = Column(Text, nullable=True)  # Base64 encoded image data 
 
+# Base.metadata.create_all(bind=engine)
+# User.__table__.drop(bind=engine)  # Ensure messages table is created
+# Message.__table__.drop(bind=engine)  # Ensure messages table is created
+# Chat_Session.__table__.drop(bind=engine)  # Ensure messages table is created

@@ -39,7 +39,7 @@ async def root():
     return {"message": "Welcome to the Text Generation API!"}
 
 @app.post("/signup", status_code=status.HTTP_201_CREATED)
-def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     existing = db.query(models.User).filter(models.User.username == user.username).first()
     if existing:
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -52,7 +52,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return JSONResponse(content = {"username": new_user.username, "access_token": access_token, "token_type": "bearer"})
 
 @app.post("/login", status_code=status.HTTP_200_OK)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+async def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if not db_user or not utils.verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
@@ -77,9 +77,17 @@ def get_profile(
     db: Session = Depends(get_db)
 ):
     user = db.query(models.User).filter(models.User.id == current_user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return JSONResponse(content = {"username": user.username, "name": user.name})
+    session_id_objects = db.query(models.Chat_Session.session_id).filter(models.Chat_Session.user_id == current_user_id).all()
+    session_ids = [{"id": str(sid.session_id), "timestamp": sid.created_at} for sid in session_id_objects]
+    return JSONResponse(content = {"username": user.username, "name": user.name, "session_ids": session_ids})
+
+@app.get("/get-all", status_code=status.HTTP_200_OK)
+def get_user_profiles(
+    db: Session = Depends(get_db),
+):
+    users = db.query(models.User).all()
+    user_list = [{"username": user.username, "name": user.name} for user in users]
+    return JSONResponse(content={"users": user_list})
 
 @app.delete("/users/{username}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
@@ -98,6 +106,18 @@ def delete_user(
 @app.get("/logout", status_code=status.HTTP_200_OK)
 def logout():
     return JSONResponse(content={"message": "Logout successful."})
+
+@app.post("/change-name", status_code=status.HTTP_200_OK)
+def change_name(
+    new_name: str,
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = db.query(models.User).filter(models.User.id == current_user_id).first()
+    user.name = new_name
+    db.commit()
+    db.refresh(user)
+    return JSONResponse(content={"message": "Name updated successfully", "name": user.name})
 
 @app.post("/gemini/gen_text", status_code=status.HTTP_200_OK)
 async def generate_text_from_prompt(request: Request):
@@ -121,19 +141,34 @@ async def generate_audio_from_prompt(request: Request):
 
     return JSONResponse(content={"success": True, "audio": generate_audio(prompt)})
 
-@app.post("/chat/new")
+@app.post("/chat/new", status_code=status.HTTP_201_CREATED)
 def create_chat_session(current_user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
     new_session = models.Chat_Session(
         user_id=current_user_id,
     )
+    new_message = models.Message(
+        session_id=new_session.session_id,
+        sender="system",
+        content="""You are a helpful assistant named HackTutor, 
+                    you are not made by other organization or team, and you are only known by this name.
+                    Always help the user to the best of your abilities."""
+    )
+    db.add(new_message)
     db.add(new_session)
     db.commit()
     db.refresh(new_session)
 
     return {"session_id": str(new_session.session_id), "message": "New chat session created"}
 
-@app.post("/chat/{session_id}/message")
+@app.post("/chat/{session_id}/message", status_code=status.HTTP_200_OK)
 def send_message(session_id: str, prompt: str, current_user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
+    chat_session = db.query(models.Chat_Session).filter(models.Chat_Session.session_id == session_id).first()
+    if not chat_session:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    if chat_session.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this chat session")
+    
+
     messages = (
         db.query(models.Message)
         .filter(models.Message.session_id == session_id)
@@ -141,7 +176,8 @@ def send_message(session_id: str, prompt: str, current_user_id: int = Depends(ge
         .all()
     )
 
-    refined_prompt = get_evidence_pack(prompt)
+    # // ! Angshuman Roy
+    refined_prompt = get_evidence_pack(prompt) 
     output = chat_with_model(refined_prompt, messages)  # Assuming generate_text is used for chat
 
     user_msg = models.Message(
@@ -158,6 +194,34 @@ def send_message(session_id: str, prompt: str, current_user_id: int = Depends(ge
     db.commit()
 
     return {"message": output}
+
+@app.get("/chat/{session_id}/messages", status_code=status.HTTP_200_OK)
+def get_chat_messages(session_id: str, current_user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    chat_session = db.query(models.Chat_Session).filter(models.Chat_Session.session_id == session_id).first()
+    if not chat_session:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    
+    if chat_session.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this chat session")
+
+    messages = (
+        db.query(models.Message)
+        .filter(models.Message.session_id == session_id)
+        .order_by(models.Message.timestamp)
+        .all()
+    )
+
+    return JSONResponse(content = {"messages": [
+        {
+            "sender": msg.sender,
+            "content": msg.content,
+            "timestamp": msg.timestamp,
+            "mermaid_code": msg.mermaid_code,
+            "img": msg.img
+        }
+        for msg in messages
+    ]})
 
 
 if __name__ == "__main__":

@@ -32,12 +32,14 @@ import {
     faChevronDown,
 } from "@fortawesome/free-solid-svg-icons"
 import "../css/home.css"
+import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { redirect } from "react-router-dom"
 
 export default function HomePage() {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-    const [openModal, setOpenModal] = useState(null); // "signup" | "login" | "forgot" | null
+    const [openModal, setOpenModal] = useState(null); // "Signup" | "Login" | "Reset" | null
     const [formData, setFormData] = useState({
         name: "",
         username: "",
@@ -94,17 +96,19 @@ export default function HomePage() {
         setError("");
 
         // Basic validation
-        if (type === "signup" && formData.password !== formData.confirmPassword) {
+        if (type === "Signup" && formData.password !== formData.confirmPassword) {
             setError("Passwords do not match!");
             return;
         }
 
         try {
             const endpointMap = {
-                signup: "http://localhost:8000/signup",
-                login: "http://localhost:8000/login",
-                forgot: "http://localhost:8000/forget-password",
+                Signup: "http://localhost:8000/signup",
+                Login: "http://localhost:8000/login",
+                Reset: "http://localhost:8000/forget-password",
             };
+            console.log(type);
+            console.log(endpointMap[type]);
             const res = await fetch(endpointMap[type], {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -113,15 +117,18 @@ export default function HomePage() {
             const data = await res.json();
             console.log(data);
 
-            if (!res.ok) throw new Error(data.message || "Something went wrong");
+            if (!res.ok) {
+                toast.error('Something went wrong!');
+                return;
+            }
 
-            alert(`${type} successful!`);
+            toast.success(`${type} successful!`);
             handleClose();
-            if (type !== "forgot") {
+            if (type !== "Reset") {
                 localStorage.setItem("token", data.access_token);
                 redirect();
             } else {
-                setOpenModal("login");
+                setOpenModal("Login");
             }
         } catch (err) {
             setError(err.message);
@@ -132,7 +139,7 @@ export default function HomePage() {
         const data = await checkLoginStatus();
         if (!data.username) {
             alert("Please log in to access the chat.");
-            setOpenModal("login");
+            setOpenModal("Login");
             return;
         }
         window.location.href = "/chat";
@@ -154,14 +161,14 @@ export default function HomePage() {
                 }}
             >
                 <Typography variant="h6" sx={{ mb: 2, textAlign: "center", color: "#333", fontWeight: "bold" }}>
-                    {type === "signup"
+                    {type === "Signup"
                         ? "Sign Up"
-                        : type === "login"
+                        : type === "Login"
                             ? "Log In"
                             : "Forgot Password"}
                 </Typography>
 
-                {type === "signup" && (
+                {type === "Signup" && (
                     <TextField
                         fullWidth
                         label="Name"
@@ -195,7 +202,7 @@ export default function HomePage() {
                     sx={{ mb: 2 }}
                 />
 
-                {type === "signup" && (
+                {type === "Signup" && (
                     <TextField
                         fullWidth
                         label="Confirm Password"
@@ -219,44 +226,44 @@ export default function HomePage() {
                     onClick={() => handleSubmit(type)}
                     sx={{ mb: 2 }}
                 >
-                    {type === "signup"
+                    {type === "Signup"
                         ? "Sign Up"
-                        : type === "login"
+                        : type === "Login"
                             ? "Log In"
-                            : "Send Reset Link"}
+                            : "Reset Password"}
                 </Button>
 
                 {/* Footer Links */}
                 <Box textAlign="center">
-                    {type === "signup" && (
+                    {type === "Signup" && (
                         <Link
                             href="#"
                             onClick={() => {
                                 handleClose();
-                                setOpenModal("login");
+                                setOpenModal("Login");
                             }}
                         >
                             Already have an account?
                         </Link>
                     )}
 
-                    {type === "login" && (
+                    {type === "Login" && (
                         <>
                             <Link
                                 href="#"
                                 onClick={() => {
                                     handleClose();
-                                    setOpenModal("signup");
+                                    setOpenModal("Signup");
                                 }}
                                 sx={{ display: "block", mb: 1 }}
                             >
-                                Don’t have an account?
+                                Don't have an account?
                             </Link>
                             <Link
                                 href="#"
                                 onClick={() => {
                                     handleClose();
-                                    setOpenModal("forgot");
+                                    setOpenModal("Reset");
                                 }}
                             >
                                 Forgot password?
@@ -264,12 +271,12 @@ export default function HomePage() {
                         </>
                     )}
 
-                    {type === "forgot" && (
+                    {type === "Reset" && (
                         <Link
                             href="#"
                             onClick={() => {
                                 handleClose();
-                                setOpenModal("login");
+                                setOpenModal("Login");
                             }}
                         >
                             Back to Login
@@ -339,7 +346,7 @@ export default function HomePage() {
                     )}
                 </Toolbar>
             </AppBar>
-
+            <Toaster position="top-right" reverseOrder={false} />
             {/* Hero Section */}
             <Box className="hero">
                 <Box className="hero-content">
@@ -353,10 +360,10 @@ export default function HomePage() {
                         <Button variant="contained" className="btn btn-primary" onClick={redirect}>
                             Chat Now
                         </Button>
-                        <Button variant="outlined" className="btn btn-secondary" onClick={() => setOpenModal("signup")}>
+                        <Button variant="outlined" className="btn btn-secondary" onClick={() => setOpenModal("Signup")}>
                             Sign Up
                         </Button>
-                        <Button className="btn btn-secondary" onClick={() => setOpenModal("login")}>
+                        <Button className="btn btn-secondary" onClick={() => setOpenModal("Login")}>
                             Log In
                         </Button>
                     </Box>
@@ -512,9 +519,9 @@ export default function HomePage() {
                 </Box>
             </Box>
 
-            {renderModal("signup")}
-            {renderModal("login")}
-            {renderModal("forgot")}
+            {renderModal("Signup")}
+            {renderModal("Login")}
+            {renderModal("Reset")}
 
             {/* Footer */}
             <Box component="footer" className="footer">
