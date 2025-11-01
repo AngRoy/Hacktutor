@@ -1,5 +1,5 @@
-from gemini_api import generate_image, generate_text
-from auth import get_current_user, create_access_token, verify_access_token
+from gemini_api import generate_image, generate_text, chat_with_model, get_evidence_pack
+from auth import get_current_user, create_access_token
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -43,7 +43,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed_pw = utils.hash_password(user.password)
-    new_user = models.User(username=user.username, hashed_password=hashed_pw)
+    new_user = models.User(username=user.username, hashed_password=hashed_pw, name=user.name)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -78,7 +78,7 @@ def get_profile(
     user = db.query(models.User).filter(models.User.id == current_user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return JSONResponse(content = {"username": user.username})
+    return JSONResponse(content = {"username": user.username, "name": user.name})
 
 @app.delete("/users/{username}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
@@ -94,6 +94,10 @@ def delete_user(
     db.commit()
     return {"detail": "User deleted successfully"}
 
+@app.get("/logout", status_code=status.HTTP_200_OK)
+def logout():
+    return JSONResponse(content={"message": "Logout successful."})
+
 @app.post("/gemini/gen_text", status_code=status.HTTP_200_OK)
 async def process_data(request: Request):
      # Or check the latest supported name
@@ -107,7 +111,52 @@ async def generate_image(request: Request):
     data = await request.json()
     prompt = data.get('prompt')
 
-    return JSONResponse(content={"success": True, "message": generate_image(prompt)})
+    return JSONResponse(content={"success": True, **generate_image(prompt)})
+
+@app.post("/gemini/gen_audio", status_code=status.HTTP_200_OK)
+async def generate_audio(request: Request):
+    data = await request.json()
+    prompt = data.get('prompt')
+
+    return JSONResponse(content={"success": True, "audio": generate_audio(prompt)})
+
+@app.post("/chat/new")
+def create_chat_session(current_user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
+    new_session = models.Chat_Session(
+        user_id=current_user_id,
+    )
+    db.add(new_session)
+    db.commit()
+    db.refresh(new_session)
+
+    return {"session_id": str(new_session.session_id), "message": "New chat session created"}
+
+@app.post("/chat/{session_id}/message")
+def send_message(session_id: str, prompt: str, current_user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
+    messages = (
+        db.query(models.Message)
+        .filter(models.Message.session_id == session_id)
+        .order_by(models.Message.timestamp)
+        .all()
+    )
+
+    refined_prompt = get_evidence_pack(prompt)
+    output = chat_with_model(refined_prompt, messages)  # Assuming generate_text is used for chat
+
+    user_msg = models.Message(
+        session_id=session_id,
+        sender="user",
+        content=prompt,
+    )
+    bot_msg = models.Message(
+        session_id=session_id,
+        sender="model",
+        content=output,
+    )
+    db.add_all([user_msg, bot_msg])
+    db.commit()
+
+    return {"message": output}
 
 
 if __name__ == "__main__":

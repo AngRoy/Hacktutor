@@ -2,7 +2,9 @@ from google import genai
 from google.genai import types
 import os
 from dotenv import load_dotenv
-
+from gtts import gTTS
+from io import BytesIO
+from base64 import b64encode
 
 # Load environment variables from .env file
 load_dotenv()
@@ -10,8 +12,13 @@ load_dotenv()
 # Get an environment variable
 api_key = os.environ.get("API_KEY")
 client = None
-TEXT_MODEL_NAME = 'gemini-2.0-flash-lite'
+
+TEXT_MODEL_2_lite = 'gemini-2.0-flash-lite'
+TEXT_MODEL_25_lite = 'gemini-2.5-flash-lite'
+TEXT_MODEL_2 = 'gemini-2.0-flash'
+TEXT_MODEL_25 = 'gemini-2.5-flash'
 IMAGE_MODEL_NAME = 'gemini-2.0-flash-preview-image-generation' # Or check the latest supported name
+
 
 def config_model():
     global client
@@ -21,7 +28,7 @@ def config_model():
         print(f"Error initializing client. Ensure GEMINI_API_KEY is set: {e}")
         exit()
 
-def generate_text(prompt: str, model: str = TEXT_MODEL_NAME) -> str:
+def generate_text(prompt: str, model: str = TEXT_MODEL_2_lite) -> str:
     result = client.models.generate_content(
         model=model,
         contents=prompt,
@@ -34,7 +41,7 @@ def generate_text(prompt: str, model: str = TEXT_MODEL_NAME) -> str:
     print(part.text)
     return (part.text)
 
-def generate_image(prompt: str, model: str = IMAGE_MODEL_NAME) -> bytes:
+def generate_image(prompt: str, model: str = IMAGE_MODEL_NAME) -> dict:
     result = client.models.generate_content(
         model=IMAGE_MODEL_NAME,
         contents=prompt,
@@ -42,8 +49,23 @@ def generate_image(prompt: str, model: str = IMAGE_MODEL_NAME) -> bytes:
         response_modalities=["TEXT", "IMAGE"]
         ),
     )
-    part = result.candidates[0].content.parts[1]
-    return part.inline_data.data
+    part = result.candidates[0].content.parts
+    return {"text": part[0].text, "image": part[1].inline_data.data}
+
+def chat_with_model(prompt: str, messages: list, model: str = TEXT_MODEL_2_lite) -> str:
+    history = [
+        {"role": msg.sender, "parts": [msg.content]}
+        for msg in messages
+    ]
+
+    chat = model.start_chat(history=history)
+
+    response = chat.send_message(prompt)
+    
+    return response.text
+
+def get_evidence_pack(prompt: str) -> str:
+    return prompt
 
 # Initialize the model configuration
 config_model()
