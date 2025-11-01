@@ -5,6 +5,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import DemoPage from "./DemoPage";
 import ChatAssistant from "./components/Chat/chatbot";
+import HomePage from "./components/HomePage";
 import MainLayout from "./components/MainLayout";
 function Home() {
   const [count, setCount] = useState(0);
@@ -52,7 +53,7 @@ function App() {
     <Router>
       <MainLayout>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/demopage" element={<DemoPage />} />
           <Route path="/chat" element={<ChatAssistant />} />
         </Routes>

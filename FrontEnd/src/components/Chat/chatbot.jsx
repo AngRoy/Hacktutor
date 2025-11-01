@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
-import ChatHeader from "./ChatHeader";
 import "../../css/chatbot.css";
 
 
@@ -43,7 +42,9 @@ const Chatbot = () => {
 
   return (
     <Box className="chatbot-container">
-      {/* <ChatHeader /> */}
+      <header className="chatbot-header">
+        HackTutor - Your Personalized AI Teaching Assistant
+      </header>
       <Box className="chatbot-messages">
         {messages.map((msg, i) => (
           <ChatMessage key={i} sender={msg.sender} text={msg.text} />

@@ -13,7 +13,6 @@ const ChatMessage = ({ sender, text }) => (
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
         style={{textAlign: "left", justifyItems: "left"}}
-
     />
   </div>
 );

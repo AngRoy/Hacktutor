@@ -21,12 +21,12 @@ const MainLayout = ({ children }) => {
       </Drawer> */}
 
       <Box className="main-content">
-        <Box className="layout-header">
+        {/* <Box className="layout-header">
           <IconButton onClick={() => setOpen(!open)} className="menu-btn">
             <FaBars />
           </IconButton>
           <Typography variant="h6">AI Course Assistant</Typography>
-        </Box>
+        </Box> */}
         <Box className="layout-body">{children}</Box>
       </Box>
     </Box>
