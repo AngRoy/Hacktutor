@@ -72,13 +72,15 @@ export default function HomePage() {
             },
         });
         const data = await res.json();
+        console.log(data);
         return data;
     }
 
     useEffect(() => {
         const getUser = async () => {
             const userData = await checkLoginStatus();
-            if (userData) setUser(userData);
+            console.log("User Data:", userData);
+            if (userData.username) setUser(userData.username);
         };
         getUser();
     }, []);
@@ -235,39 +237,45 @@ export default function HomePage() {
 
                 {/* Footer Links */}
                 <Box textAlign="center">
-                    {type === "Signup" && (
-                        <Link
-                            href="#"
-                            onClick={() => {
-                                handleClose();
-                                setOpenModal("Login");
-                            }}
-                        >
-                            Already have an account?
-                        </Link>
+                    {type === "signup" && (
+                        <Typography color="black">Already have an account?{" "}
+                            <Link
+                                href="#"
+                                onClick={() => {
+                                    handleClose();
+                                    setOpenModal("login");
+                                }}
+                            >
+                                Log In Here
+                            </Link>
+                        </Typography>
                     )}
 
                     {type === "Login" && (
                         <>
-                            <Link
-                                href="#"
-                                onClick={() => {
-                                    handleClose();
-                                    setOpenModal("Signup");
-                                }}
-                                sx={{ display: "block", mb: 1 }}
-                            >
-                                Don't have an account?
-                            </Link>
-                            <Link
-                                href="#"
-                                onClick={() => {
-                                    handleClose();
-                                    setOpenModal("Reset");
-                                }}
-                            >
-                                Forgot password?
-                            </Link>
+                            <Typography color="black"
+                                sx={{ display: "block", mb: 1 }}>Don't have an account?{" "}
+                                <Link
+                                    href="#"
+                                    onClick={() => {
+                                        handleClose();
+                                        setOpenModal("signup");
+                                    }}
+                                >
+                                    Register Now
+                                </Link>
+                            </Typography>
+                            <Typography color="black">Forgot your password?{" "}
+                                <Link
+                                    href="#"
+                                    onClick={() => {
+                                        handleClose();
+                                        setOpenModal("forgot");
+                                    }}
+                                >
+                                    Reset Here
+                                </Link>
+                            </Typography>
                         </>
                     )}
 
@@ -310,7 +318,7 @@ export default function HomePage() {
                             {user && (
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: 3 }}>
                                     <Typography variant="body1" sx={{ color: "#fff", fontWeight: 500 }}>
-                                        Hi, {user.username}
+                                        Hi, {user}
                                     </Typography>
                                     <IconButton color="inherit" onClick={handleMenuOpen}>
                                         <FontAwesomeIcon icon={faChevronDown} />
@@ -356,16 +364,20 @@ export default function HomePage() {
                     <Typography variant="h6" className="hero-subtitle">
                         Master any topic with personalized explanations, diagrams, and step-by-step guidance tailored just for you.
                     </Typography>
-                    <Box className="hero-buttons">
+                    <Box className="hero-buttons" justifyContent={"center"}>
                         <Button variant="contained" className="btn btn-primary" onClick={redirect}>
                             Chat Now
                         </Button>
-                        <Button variant="outlined" className="btn btn-secondary" onClick={() => setOpenModal("Signup")}>
-                            Sign Up
-                        </Button>
-                        <Button className="btn btn-secondary" onClick={() => setOpenModal("Login")}>
-                            Log In
-                        </Button>
+                        {!user && (
+                            <>
+                                <Button variant="outlined" className="btn btn-secondary" onClick={() => setOpenModal("signup")}>
+                                    Sign Up
+                                </Button>
+                                <Button className="btn btn-secondary" onClick={() => setOpenModal("login")}>
+                                    Log In
+                                </Button>
+                            </>
+                        )}
                     </Box>
                 </Box>
 
@@ -449,7 +461,7 @@ export default function HomePage() {
 
             {/* How It Works Section */}
             <Box id="how-it-works" className="how-it-works">
-                <Typography variant="h4" className="section-title" sx={{mb: 3}}>
+                <Typography variant="h4" className="section-title" sx={{ mb: 3 }}>
                     Your Learning Journey in 4 Steps
                 </Typography>
                 <Box className="steps-container">
@@ -510,11 +522,11 @@ export default function HomePage() {
                 <Typography variant="h4">Ready to Transform Your Learning?</Typography>
                 <Typography variant="body1">Join thousands of students already mastering new skills with HackTutor</Typography>
                 <Box className="cta-buttons">
-                    <Button variant="contained" className="btn btn-primary btn-large">
-                        Get Started Free
+                    <Button variant="contained" className="btn btn-primary btn-large" onClick={() => redirect()}>
+                        Get Started for Free
                     </Button>
-                    <Button variant="outlined" className="btn btn-outline btn-large">
-                        Schedule a Demo
+                    <Button variant="outlined" className="btn btn-outline btn-large" onClick={() => setOpenModal("signup")}>
+                        Register Now
                     </Button>
                 </Box>
             </Box>

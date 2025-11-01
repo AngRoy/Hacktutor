@@ -56,6 +56,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/demopage" element={<DemoPage />} />
           <Route path="/chat" element={<ChatAssistant />} />
+          <Route path="/chat/:sessionId" element={<ChatAssistant />} />
         </Routes>
       </MainLayout>
     </Router>
