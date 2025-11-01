@@ -1,5 +1,6 @@
 from gemini_api import generate_image, generate_text, chat_with_model, get_evidence_pack
 from auth import get_current_user, create_access_token
+from utils import generate_audio
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -99,7 +100,7 @@ def logout():
     return JSONResponse(content={"message": "Logout successful."})
 
 @app.post("/gemini/gen_text", status_code=status.HTTP_200_OK)
-async def process_data(request: Request):
+async def generate_text_from_prompt(request: Request):
      # Or check the latest supported name
     data = await request.json()
     prompt = data.get('prompt')
@@ -107,14 +108,14 @@ async def process_data(request: Request):
     return JSONResponse(content={"success": True, "message": generate_text(prompt)})
 
 @app.post("/gemini/gen_image", status_code=status.HTTP_200_OK)
-async def generate_image(request: Request):
+async def generate_image_from_prompt(request: Request):
     data = await request.json()
     prompt = data.get('prompt')
 
     return JSONResponse(content={"success": True, **generate_image(prompt)})
 
 @app.post("/gemini/gen_audio", status_code=status.HTTP_200_OK)
-async def generate_audio(request: Request):
+async def generate_audio_from_prompt(request: Request):
     data = await request.json()
     prompt = data.get('prompt')
 
