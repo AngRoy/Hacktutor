@@ -13,9 +13,9 @@ class User(Base):
 class Chat_Session(Base):
     __tablename__ = "chat_sessions"
 
-    session_id = Column(UUID, nullable=False, primary_key=True, default=uuid4())
+    session_id = Column(UUID, nullable=False, primary_key=True)
     user_id = Column(Integer, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.now())
+    created_at = Column(DateTime, nullable=False)
 
 class Message(Base):
     __tablename__ = "messages"
@@ -24,7 +24,7 @@ class Message(Base):
     session_id = Column(UUID, nullable=False)
     sender = Column(String, nullable=False)  # 'user' or 'model'
     content = Column(Text, nullable=False)
-    timestamp = Column(DateTime, nullable=False, default=datetime.now())
+    created_at = Column(DateTime, nullable=False)
     mermaid_code = Column(Text, nullable=True)
     img = Column(Text, nullable=True)  # Base64 encoded image data 
 

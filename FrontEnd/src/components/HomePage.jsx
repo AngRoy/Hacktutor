@@ -237,13 +237,13 @@ export default function HomePage() {
 
                 {/* Footer Links */}
                 <Box textAlign="center">
-                    {type === "signup" && (
+                    {type === "Signup" && (
                         <Typography color="black">Already have an account?{" "}
                             <Link
                                 href="#"
                                 onClick={() => {
                                     handleClose();
-                                    setOpenModal("login");
+                                    setOpenModal("Login");
                                 }}
                             >
                                 Log In Here
@@ -259,7 +259,7 @@ export default function HomePage() {
                                     href="#"
                                     onClick={() => {
                                         handleClose();
-                                        setOpenModal("signup");
+                                        setOpenModal("Signup");
                                     }}
                                 >
                                     Register Now
@@ -270,7 +270,7 @@ export default function HomePage() {
                                     href="#"
                                     onClick={() => {
                                         handleClose();
-                                        setOpenModal("forgot");
+                                        setOpenModal("Reset");
                                     }}
                                 >
                                     Reset Here
@@ -370,10 +370,10 @@ export default function HomePage() {
                         </Button>
                         {!user && (
                             <>
-                                <Button variant="outlined" className="btn btn-secondary" onClick={() => setOpenModal("signup")}>
+                                <Button variant="outlined" className="btn btn-secondary" onClick={() => setOpenModal("Signup")}>
                                     Sign Up
                                 </Button>
-                                <Button className="btn btn-secondary" onClick={() => setOpenModal("login")}>
+                                <Button className="btn btn-secondary" onClick={() => setOpenModal("Login")}>
                                     Log In
                                 </Button>
                             </>
@@ -525,7 +525,7 @@ export default function HomePage() {
                     <Button variant="contained" className="btn btn-primary btn-large" onClick={() => redirect()}>
                         Get Started for Free
                     </Button>
-                    <Button variant="outlined" className="btn btn-outline btn-large" onClick={() => setOpenModal("signup")}>
+                    <Button variant="outlined" className="btn btn-outline btn-large" onClick={() => setOpenModal("Signup")}>
                         Register Now
                     </Button>
                 </Box>

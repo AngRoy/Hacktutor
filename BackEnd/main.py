@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session
 from db_setup import models, schemas, utils
 from db_setup.db_setup import engine, get_db
 
+from datetime import datetime
+from uuid import uuid4
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Text Generation API",
@@ -144,14 +147,18 @@ async def generate_audio_from_prompt(request: Request):
 @app.post("/chat/new", status_code=status.HTTP_201_CREATED)
 def create_chat_session(current_user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
     new_session = models.Chat_Session(
+        session_id=uuid4(),
         user_id=current_user_id,
+        created_at=datetime.now()
     )
     new_message = models.Message(
         session_id=new_session.session_id,
         sender="system",
         content="""You are a helpful assistant named HackTutor, 
                     you are not made by other organization or team, and you are only known by this name.
-                    Always help the user to the best of your abilities."""
+                    Always help the user to the best of your abilities.""",
+        created_at=datetime.now()
+        
     )
     db.add(new_message)
     db.add(new_session)
@@ -172,7 +179,7 @@ def send_message(session_id: str, prompt: str, current_user_id: int = Depends(ge
     messages = (
         db.query(models.Message)
         .filter(models.Message.session_id == session_id)
-        .order_by(models.Message.timestamp)
+        .order_by(models.Message.created_at)
         .all()
     )
 
@@ -184,11 +191,13 @@ def send_message(session_id: str, prompt: str, current_user_id: int = Depends(ge
         session_id=session_id,
         sender="user",
         content=prompt,
+        created_at=datetime.now()
     )
     bot_msg = models.Message(
         session_id=session_id,
         sender="model",
         content=output,
+        created_at=datetime.now()
     )
     db.add_all([user_msg, bot_msg])
     db.commit()
@@ -208,7 +217,7 @@ def get_chat_messages(session_id: str, current_user_id: int = Depends(get_curren
     messages = (
         db.query(models.Message)
         .filter(models.Message.session_id == session_id)
-        .order_by(models.Message.timestamp)
+        .order_by(models.Message.created_at)
         .all()
     )
 
@@ -216,7 +225,7 @@ def get_chat_messages(session_id: str, current_user_id: int = Depends(get_curren
         {
             "sender": msg.sender,
             "content": msg.content,
-            "timestamp": msg.timestamp,
+            "timestamp": msg.created_at,
             "mermaid_code": msg.mermaid_code,
             "img": msg.img
         }
