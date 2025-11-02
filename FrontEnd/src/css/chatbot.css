@@ -280,9 +280,32 @@
   transition: all 0.3s ease;
 }
 
-.chatbot-input button:hover {
+.chatbot-input .chatbot-mic {
+  background-color: #434a6d;
+  min-width: 120px;
+}
+
+.chatbot-input .chatbot-mic.active {
+  background-color: #ff6b6b;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.35);
+}
+
+.chatbot-input .chatbot-mic:disabled {
+  background-color: #555b88;
+  box-shadow: none;
+}
+
+.chatbot-input button:not(.chatbot-mic):hover {
   background-color: #8187ff;
   box-shadow: 0 4px 12px rgba(110, 118, 255, 0.4);
+}
+
+.chatbot-input .chatbot-mic:hover {
+  background-color: #59608a;
+}
+
+.chatbot-input .chatbot-mic.active:hover {
+  background-color: #ff7f7f;
 }
 
 .chatbot-input button:disabled {
