@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, use } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Box, CircularProgress, IconButton, Button, Typography } from "@mui/material"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -6,10 +6,14 @@ import { faBars, faTimes, faRocket } from "@fortawesome/free-solid-svg-icons"
 import ChatMessage from "./ChatMessage"
 import ChatInput from "./ChatInput"
 import ChatSidebar from "./ChatSidebar"
+import mermaid from "mermaid"
 import "../../css/chatbot.css"
 
 const Chatbot = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  useEffect(() => {
+    mermaid.initialize({ startOnLoad: false, theme: "default" });
+  }, []);
   const { sessionId } = useParams();
   console.log("Chatbot component loaded with id:", sessionId)
   const token = localStorage.getItem("token")
@@ -97,13 +101,22 @@ const Chatbot = () => {
     }
   }
 
-  const constructAIReply = (segments) => {
-    let aiReply = ""
+  const constructAIReply = async (segments) => {
+    let aiReplySegments = [];
     for (let seg of segments) {
-      aiReply += seg.section + ":\n"
-      aiReply += seg.text + "\n\n"
+      aiReplySegments.push({ type: "markdown", content: (seg.text + "\n\n") });
+      if (seg.kind === "diagram") {
+        try {
+          const id = "mermaid-" + Math.random().toString(36).substr(2, 9);
+          const { svg } = await mermaid.render(id, seg.mermaid);
+          aiReplySegments.push({ type: "svg", content: svg });
+        } catch (err) {
+          aiReplySegments.push({ type: "error", content: err.message });
+        }
+      }
+      aiReplySegments.push({ type: "markdown", content: (seg.text + "\n\n") });
     }
-    return aiReply || "Hmm, I didn't quite catch that."
+    return aiReplySegments;
   }
 
   const handleSend = async (text) => {
@@ -122,7 +135,7 @@ const Chatbot = () => {
       const data = await res.json()
       console.log("Backend response data:", data)
 
-      const ai = constructAIReply(segments)
+      const ai = await constructAIReply(segments)
       console.log("AI Reply:", ai)
       setMessages([...newMessages, { sender: "ai", text: ai }])
     } catch {
@@ -134,7 +147,7 @@ const Chatbot = () => {
 
   const handleLoadChat = async (chatId) => {
     setMessages([])
-    const initialMessage = { sender: "ai", text: "👋 Hi! I'm your AI tutor. What topic would you like to explore today?" }
+    // const initialMessage = { sender: "ai", text: "👋 Hi! I'm your AI tutor. What topic would you like to explore today?" }
     setLoading(true)
     setCurrentSessionId(chatId)
     const res = await fetch(`${backendUrl}chat/${chatId}/messages`, {
@@ -144,22 +157,22 @@ const Chatbot = () => {
     const data = await res.json()
     console.log("Loaded chat data:", data)
     const msgs = data.messages
-    let i=0
+    let i = 0
     let newMessages = []
-    for(let msg of msgs){
-      let newMsg = {sender: "", text: ""};
-      if(i%2===0){
-        newMsg.sender="user"
-        newMsg.text=msg.content.segments[0].text
+    for (let msg of msgs) {
+      let newMsg = { sender: "", text: "" };
+      if (i % 2 === 0) {
+        newMsg.sender = "user"
+        newMsg.text = msg.content.segments[0].text
       }
-      else{
-        newMsg.sender="ai"
-        newMsg.text=constructAIReply(msg.content.segments)
+      else {
+        newMsg.sender = "ai"
+        newMsg.text = await constructAIReply(msg.content.segments)
       }
       i++;
       newMessages.push(newMsg);
     }
-    const totalMessages = [initialMessage, ...newMessages]
+    const totalMessages = [...newMessages]
     setMessages(totalMessages)
     setHasSession(true)
     setLoading(false)
