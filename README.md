@@ -12,8 +12,6 @@ HackTutor is an end-to-end AI tutoring platform that combines a FastAPI backend,
 | Media services | Gemini-backed generators plus local utilities for gTTS audio, Mermaid diagrams, and MoviePy video assembly. |
 | Data layer | SQLAlchemy models persisted via the `DB_URL` connection string; chat artifacts are cached to disk for replay.  |
 
-[![System architecture diagram](https://iili.io/KLTGE1s.md.png)](https://freeimage.host/i/KLTGE1s)
-
 ### Repository layout
 
 ```
