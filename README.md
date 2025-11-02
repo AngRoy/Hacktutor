@@ -123,12 +123,6 @@ Hacktutor/
 - Full-motion videos are persisted per session, and narration text is cached on the corresponding `Chat_Session`. 
 - Conversation outputs are serialized as pickled lesson drafts in `BackEnd/local_data/` for quick replay. 
 
-## Development tips
-
-- Keep your Gemini quota usage in mind; lesson generation calls the API multiple times per request (normalize, notes, lesson, and optional repairs). 
-- When running ingestion on large corpora, monitor memory usage; the scripts flush batches to Qdrant and Whoosh incrementally to avoid overflows. 
-- For production deployments, swap the sample SQLite URL with Postgres or another supported backend by adjusting `DB_URL`.
-
 ## Useful commands
 
 ```bash
