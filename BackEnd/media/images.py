@@ -7,9 +7,9 @@ from google.genai import types
 DEFAULT_IMG_MODEL = os.getenv("GEMINI_IMG_MODEL", "gemini-2.0-flash-preview-image-generation")
 
 def _client():
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("API_KEY")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not set")
+        raise RuntimeError("API_KEY not set")
     return genai.Client(api_key=api_key)
 
 def _pick_inline_image(parts) -> Optional[bytes]:

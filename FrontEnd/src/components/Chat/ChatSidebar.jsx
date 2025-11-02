@@ -7,8 +7,13 @@ import { faPlus, faComment, faClock } from "@fortawesome/free-solid-svg-icons"
 import "../../css/chatbot.css"
 
 const ChatSidebar = ({recentChats, onNewChat, currentChatId, sidebarOpen }) => {
-  const navigate = useNavigate()
-  recentChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+  const navigate = useNavigate();
+  recentChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
+  };
 
   return (
     <Box className={`sidebar-container ${sidebarOpen ? "open" : "closed"}`}>
@@ -50,6 +55,9 @@ const ChatSidebar = ({recentChats, onNewChat, currentChatId, sidebarOpen }) => {
           </Box>
         )}
       </Box>
+      <Button fullWidth className="new-chat-button" onClick={handleLogout}>
+        Logout
+      </Button>
     </Box>
   )
 }

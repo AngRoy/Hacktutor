@@ -33,7 +33,7 @@ def render_assets_for_lesson(lesson: Dict[str, Any], out_root: str, image_concur
         if isinstance(p, str) and p.strip():
             enriched = enrich_image_prompt(p.strip(), topic=lesson.get("title"))
             prompts.append((i, enriched))
-
+    print(prompts)
     if prompts:
         saved = gen_images(prompts, out_dir=img_dir, concurrency=image_concurrency)
         for i, path in saved.items():

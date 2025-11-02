@@ -7,6 +7,8 @@ import ChatMessage from "./ChatMessage"
 import ChatInput from "./ChatInput"
 import ChatSidebar from "./ChatSidebar"
 import mermaid from "mermaid"
+import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import "../../css/chatbot.css"
 
 const Chatbot = () => {
@@ -115,8 +117,52 @@ const Chatbot = () => {
     return aiReplySegments;
   }
 
-  const handleSend = async (text) => {
+  const handleDownload = (url) => {
+    // const video = document.querySelector("video");
+    // const url = video.src;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "video.mp4";
+    a.click();
+  };
+
+  const handleVid = async (text) => {
+    try {
+      const res = await fetch(`${backendUrl}chat/${currentSessionId}/video`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, },
+        body: JSON.stringify({ prompt: text }),
+      })
+      const data = await res.json();
+      if (data.progress === 'Progress'){
+        toast.warn("Loading video please wait...");
+        return;
+      }
+      if (toast.progress === 'Success'){
+        toast.success("Downloading video...");
+        handleDownload(`${backendUrl}${data.path}`)
+        return;
+
+      }
+      console.log("Backend response data:", data)
+
+      // const ai = constructAIReply(segments)
+      // console.log("AI Reply:", ai)
+      // setMessages([...newMessages, { sender: "ai", text: ai }])
+    } catch {
+      // setMessages([...newMessages, { sender: "ai", text: "⚠️ Error: Unable to reach backend." }])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSend = async (text, type) => {
     if (!text.trim()) return
+    if (type === 'vid') {
+      console.log("HI");
+      handleVid();
+      return;
+    }
 
     const newMessages = [...messages, { sender: "user", text }]
     setMessages(newMessages)
@@ -131,7 +177,7 @@ const Chatbot = () => {
       const data = await res.json()
       console.log("Backend response data:", data)
 
-      const ai = await constructAIReply(data.segments)
+      const ai = await constructAIReply(data.segments);
       console.log("AI Reply:", ai)
       setMessages([...newMessages, { sender: "ai", text: ai }])
     } catch (error) {
@@ -192,7 +238,7 @@ const Chatbot = () => {
           currentChatId={currentSessionId}
           sidebarOpen={sidebarOpen}
         />
-
+        <Toaster position="top-right" reverseOrder={false} />
         <Box className="chatbot-main">
           <Box className="chatbot-header-top">
             <IconButton

@@ -42,7 +42,7 @@ def generate_text(prompt: str, model: str = TEXT_MODEL_2_lite) -> str:
     )
 
     part = result.candidates[0].content.parts[0]
-    print(part.text)
+    # print(part.text)
     return (part.text)
 
 def generate_image(prompt: str, model: str = IMAGE_MODEL_NAME) -> dict:

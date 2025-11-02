@@ -6,11 +6,13 @@ import "../../css/chatbot.css";
 const ChatInput = ({ onSend, disabled }) => {
   const [input, setInput] = useState("");
 
-  const handleSend = () => {
+  const handleSend = (type) => {
     if (!input.trim()) return;
-    onSend(input);
+    onSend(input, type);
     setInput("");
   };
+
+
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -18,6 +20,17 @@ const ChatInput = ({ onSend, disabled }) => {
       handleSend();
     }
   };
+
+  // const handleDownload = (url) => {
+  //   // const video = document.querySelector("video");
+  //   // const url = video.src;
+  //   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  //   const a = document.createElement("a");
+  //   url = `${backendUrl}${path}`
+  //   a.href = url;
+  //   a.download = "video.mp4";
+  //   a.click();
+  // };
 
   return (
     <footer className="chatbot-input">
@@ -28,8 +41,11 @@ const ChatInput = ({ onSend, disabled }) => {
         placeholder="Type your question..."
         disabled={disabled}
       />
-      <button onClick={handleSend} disabled={disabled}>
+      <button onClick={() => handleSend('img')} disabled={disabled}>
         <FaPaperPlane style={{ marginRight: "6px" }} /> Send
+      </button>
+      <button onClick={handleDownload} disabled={disabled}>
+        <FaPaperPlane style={{ marginRight: "6px" }} /> Generate Video
       </button>
     </footer>
   );

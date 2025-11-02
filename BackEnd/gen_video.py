@@ -283,9 +283,7 @@ def _assemble_video(slide_media: list[tuple[Path, Path]],
 # ----------------------------------------------------------------------
 # Public API
 # ----------------------------------------------------------------------
-async def createVideo(topic_prompt: str,
-                db: Session,
-                session_id: str,
+def createVideo(topic_prompt: str,
                 out_path: str = "video.mp4",
                 model: str = "gemini-2.5-flash",
                 workdir: str = "samya_artifacts",
@@ -328,13 +326,8 @@ async def createVideo(topic_prompt: str,
     out = _assemble_video(media_for_assembly, Path(out_path))
     log.info(f"Video written to: {out}")
 
-    chat_session = db.query(models.Chat_Session).filter(models.Chat_Session.session_id == session_id).first()
-    chat_session.video_progress = "Success"
-    chat_session.video_path = str(out)
-    chat_session.video_text = '\n\n'.join([s.narration_text for s in slides])
-    db.commit()
 
-    # return str(out)
+    return str(out)
 
 
 # ----------------------------------------------------------------------
